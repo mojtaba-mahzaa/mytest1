@@ -1,0 +1,64 @@
+
+<!DOCTYPE html>
+<html lang="fa">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phone Tilt Test</title>
+
+<body style="font-family:sans-serif;text-align:center;padding:20px;direction:rtl">
+  <h2>آزمایش حسگر گوشی</h2>
+  <button id="start">شروع آزمایش</button>
+  <p id="status">آماده</p>
+  <p>Beta: <span id="beta">—</span></p>
+  <p>Gamma: <span id="gamma">—</span></p>
+
+<script>
+const statusEl = document.getElementById("status");
+const betaEl = document.getElementById("beta");
+const gammaEl = document.getElementById("gamma");
+
+document.getElementById("start").addEventListener("click", async () => {
+  statusEl.textContent = "در حال بررسی...";
+
+  try {
+    if (!("DeviceOrientationEvent" in window)) {
+      statusEl.textContent = "DeviceOrientationEvent پشتیبانی نمی‌شود.";
+      return;
+    }
+
+    if (typeof DeviceOrientationEvent.requestPermission === "function") {
+      const permission =
+        await DeviceOrientationEvent.requestPermission();
+
+      if (permission !== "granted") {
+        statusEl.textContent = "مجوز تأیید نشد: " + permission;
+        return;
+      }
+    }
+
+    let received = false;
+
+    window.addEventListener("deviceorientation", (event) => {
+      received = true;
+      betaEl.textContent = event.beta ?? "null";
+      gammaEl.textContent = event.gamma ?? "null";
+      statusEl.textContent = "رویداد حسگر دریافت شد";
+    });
+
+    statusEl.textContent = "گوشی را آرام کج کن...";
+
+    setTimeout(() => {
+      if (!received) {
+        statusEl.textContent =
+          "هیچ رویداد حسگری در ۵ ثانیه دریافت نشد.";
+      }
+    }, 5000);
+
+  } catch (error) {
+    statusEl.textContent =
+      error.name + ": " + error.message;
+  }
+});
+</script>
+</body>
+</html>
